@@ -1,0 +1,228 @@
+#include "DynamicArray.h"
+#include <cstring>
+#include <iostream>
+using namespace std;
+
+DynamicArray::DynamicArray()
+    : m_length(0), m_capacity(0), m_scaling_factor(2.0), m_data(nullptr) {
+}
+
+DynamicArray::DynamicArray(double scaling_factor, unsigned int capacity) {
+    this->m_scaling_factor = scaling_factor;
+    this->m_length = 0;
+    this->m_capacity = capacity;
+    m_data = NULL;
+}
+
+DynamicArray::DynamicArray(double scaling_factor, unsigned int length, int default_value) {
+   this->m_scaling_factor = scaling_factor;
+   this->m_length = length;
+   this->m_capacity = length;
+   m_data = new int[length];
+   for(int i = 0; i < length; i++){
+       m_data[i] = default_value;
+   }
+}
+
+DynamicArray::DynamicArray(const DynamicArray& other) {
+    (*this) = other;
+}
+
+DynamicArray::~DynamicArray() {
+    delete[] m_data;
+}
+
+unsigned int DynamicArray::getLength() {
+    return m_length;
+}
+
+unsigned int DynamicArray::getCapacity() {
+    return m_capacity;
+}
+
+double DynamicArray::getScalingFactor() {
+    return m_scaling_factor;
+}
+
+void DynamicArray::setScalingFactor(double value) {
+    m_scaling_factor = value;
+}
+
+std::string DynamicArray::toString() {
+    std::string str("{");
+    for (unsigned int i = 0 ; i < m_length ; i++) {
+        str.append(std::to_string(m_data[i]));
+        if (i < m_length - 1) {
+            str.push_back(' ');
+        }
+    }
+    str.push_back('}');
+    return str;
+}
+
+bool DynamicArray::findFirstOf(int value, unsigned int *index) {
+    bool found = false;
+    for(unsigned int i = 0; i < m_length; i++){
+       if(m_data[i] == value){
+           *index = i;
+           found = true;
+           return found;
+       }
+   }
+   return found;
+}
+
+bool DynamicArray::findLastOf(int value, unsigned int *index) {
+    // m<length -1s
+    bool found = false;
+    for(unsigned int i = m_length; i > 0; i--){
+       if(m_data[i] == value){
+           *index = i;
+           found = true;
+           return found;
+       }
+   }
+   return found;
+}
+
+void DynamicArray::append(int value) {
+    if(m_length == m_capacity){
+       m_capacity = m_capacity * m_scaling_factor;
+       int *temp = new int[m_capacity];
+       for(int i = 0 ; i < m_length; i++){
+           temp[i] = m_data[i];
+       }
+
+       delete[] m_data;
+       m_data = temp;
+
+    }
+   m_data[m_length] = value;
+   m_length += 1;
+}
+
+void DynamicArray::prepend(int value) {
+    if(m_length == m_capacity){
+       m_capacity = m_capacity * m_scaling_factor;
+       int *temp = new int[m_capacity];
+       for(int i = 0 ; i < m_length; i++){
+           temp[i] = m_data[i];
+       }
+     delete[] m_data;
+     m_data = temp;
+    }
+    int *temp = new int[m_capacity + 1];
+    temp[0] = value;
+    m_length += 1;
+    for(int i = 0; i <= m_length; i++){
+       temp[i + 1] = m_data[i];
+    }
+   m_data = temp;
+}
+
+void DynamicArray::removeLast() {
+    int *temp = new int[m_capacity];
+    m_length -= 1;
+    for(int i = 0; i <= m_length; i++){
+        temp[i] = m_data[i];
+    }
+   m_data = temp;
+}
+
+void DynamicArray::removeFirst() {
+   int *temp = new int[m_capacity];
+   m_length -= 1;
+   for(int i = 0; i <= m_length; i++){
+       temp[i - 1] = m_data[i];
+   }
+   m_data = temp;
+}
+
+void DynamicArray::clear() {
+    m_capacity = 0;
+    m_length = 0;
+    m_data = new int[m_capacity];
+ //   delete [] m_data;
+}
+
+int& DynamicArray::operator[](unsigned int index) {
+    return m_data[index];
+}
+
+DynamicArray& DynamicArray::operator=(const DynamicArray &other) {
+    m_length = other.m_length;
+    m_capacity = other.m_capacity;
+    m_scaling_factor = other.m_scaling_factor;
+    m_data = new int[m_capacity];
+    std::memcpy(m_data, other.m_data, sizeof(int) * m_length);
+    // this allows statements such as (a = b = c) assuming a, b, and c are all the DynamicArray type
+    return (*this);
+}
+
+int main(int argc, char** argv)
+{
+    unsigned int length = 10, range = 10;
+    unsigned int A;
+    unsigned int B;
+    int i, rc = 0, x, index;
+    double scaling_factor = 2;
+
+    DynamicArray da;
+    unsigned int arr [5] = {0,1,2,3,0};
+
+    da = DynamicArray(scaling_factor, length, 5);
+   da.findLastOf(5,&A);
+//    da.findFirstOf(5,&A);
+
+    cout << A <<endl;
+
+    /*
+     * seed the random number generator using the system clock this prevents
+     * the computer from using the same random sequence of numbers over and over again
+     */
+    srand(static_cast<unsigned int>(time(nullptr)));
+
+    cout << "---- Testing the constructor using a scaling factor of " << scaling_factor << " ----" << endl;
+    da = DynamicArray(scaling_factor, 2);
+    cout << "Printing empty array" << endl;
+    cout << "ARRAY: " << da.toString() << endl;
+
+    cout << "---- Testing the ability to add values to the array ----" << endl;
+    for (i = 0; i < length; i++)
+    {
+        x = rand() % range;
+        cout << "Adding value " << x << endl;
+        da.append(x);
+        cout << "ARRAY: length=" << da.getLength() << " capacity=" << da.getCapacity() << endl;
+        cout << "ARRAY: " << da.toString() << endl;
+    }
+     x = rand() % range;
+    cout << "Adding value " << x << endl;
+    da.append(x);
+//    cout << "ARRAY: " << da.toString() << endl;
+
+    x = rand() % range;
+    cout << "Adding value " << x << endl;
+//    cout << "ARRAY: length=" << da.getLength() << " capacity=" << da.getCapacity() << endl;
+    da.prepend(x);
+    cout << "ARRAY: " << da.toString() << endl;
+
+    cout << "removing first " << endl;
+    da.removeFirst();
+//    cout << "ARRAY: length=" << da.getLength() << " capacity=" << da.getCapacity() << endl;
+    cout << "ARRAY: " << da.toString() << endl;
+
+    cout << "removing last " << endl;
+    da.removeLast();
+    cout << "ARRAY: length=" << da.getLength() << " capacity=" << da.getCapacity() << endl;
+    cout << "ARRAY: " << da.toString() << endl;
+    cout << "---- Clearing array ----" << endl;
+
+    da.clear();
+    cout << "ARRAY: length=" << da.getLength() << " capacity=" << da.getCapacity() << endl;
+    cout << "ARRAY: " << da.toString() << endl;
+    // do before other function calls
+
+
+    return rc;
+}
